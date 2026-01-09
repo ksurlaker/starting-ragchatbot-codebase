@@ -111,6 +111,53 @@ header h1 {
     margin-bottom: 0;
 }
 
+/* New Chat Button */
+.new-chat-section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.new-chat-button {
+    width: 100%;
+    padding: 0.5rem 0;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.new-chat-button:focus {
+    outline: none;
+    color: var(--primary-color);
+}
+
+.new-chat-button:hover {
+    color: var(--primary-color);
+}
+
+.new-chat-button svg {
+    flex-shrink: 0;
+}
+
+.new-chat-button:active {
+    transform: none;
+}
+
+.new-chat-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* Main Chat Area */
 .chat-main {
     flex: 1;
@@ -243,6 +290,61 @@ header h1 {
 .sources-content {
     padding: 0 0.5rem 0.25rem 1.5rem;
     color: var(--text-secondary);
+}
+
+/* Source item styling */
+.source-item {
+    margin: 0.4rem 0;
+    padding: 0.5rem 0.75rem;
+    background: rgba(107, 155, 209, 0.1);
+    border-left: 3px solid var(--primary-color);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.source-item:hover {
+    background: rgba(107, 155, 209, 0.15);
+    transform: translateX(2px);
+}
+
+/* Source link styling */
+.source-link {
+    color: #7eb5f0;
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+}
+
+.source-link::before {
+    content: "📄";
+    margin-right: 0.5rem;
+    font-size: 0.9em;
+}
+
+.source-link:hover {
+    color: #9dc9ff;
+    text-decoration: underline;
+}
+
+.source-link:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+.source-text {
+    color: var(--text-secondary);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+}
+
+.source-text::before {
+    content: "📄";
+    margin-right: 0.5rem;
+    font-size: 0.9em;
+    opacity: 0.6;
 }
 
 /* Markdown formatting styles */
