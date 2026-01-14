@@ -1,14 +1,16 @@
 """Integration tests for RAG System end-to-end functionality"""
-import pytest
-from unittest.mock import MagicMock, patch, Mock
-import sys
+
 import os
+import sys
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Add backend directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 
-from rag_system import RAGSystem
 from models import Source
+from rag_system import RAGSystem
 
 
 class TestRAGSystemIntegration:
@@ -17,10 +19,12 @@ class TestRAGSystemIntegration:
     @pytest.fixture
     def rag_system(self, mock_config):
         """Create RAGSystem with mocked dependencies"""
-        with patch('rag_system.VectorStore') as mock_vector_store_class, \
-             patch('rag_system.AIGenerator') as mock_ai_generator_class, \
-             patch('rag_system.DocumentProcessor'), \
-             patch('rag_system.SessionManager'):
+        with (
+            patch("rag_system.VectorStore"),
+            patch("rag_system.AIGenerator"),
+            patch("rag_system.DocumentProcessor"),
+            patch("rag_system.SessionManager"),
+        ):
 
             # Create RAG system instance
             rag = RAGSystem(mock_config)
@@ -53,7 +57,9 @@ class TestRAGSystemIntegration:
         """Test full query flow when Claude searches then answers"""
         # Arrange
         rag_system.session_manager.get_conversation_history.return_value = None
-        rag_system.ai_generator.generate_response.return_value = "MCP stands for Model Context Protocol"
+        rag_system.ai_generator.generate_response.return_value = (
+            "MCP stands for Model Context Protocol"
+        )
         rag_system.tool_manager.get_last_sources.return_value = sample_sources
 
         # Act
@@ -105,7 +111,9 @@ class TestRAGSystemIntegration:
         rag_system.tool_manager.get_last_sources.return_value = []
 
         # Act
-        answer, sources = rag_system.query("Very specific query", session_id="test_session")
+        answer, sources = rag_system.query(
+            "Very specific query", session_id="test_session"
+        )
 
         # Assert
         assert answer == "No information found"
@@ -117,7 +125,9 @@ class TestRAGSystemIntegration:
         # Arrange
         rag_system.session_manager.get_conversation_history.return_value = None
         # Simulate AIGenerator receiving error from tool execution
-        rag_system.ai_generator.generate_response.return_value = "I encountered an error searching the database"
+        rag_system.ai_generator.generate_response.return_value = (
+            "I encountered an error searching the database"
+        )
         rag_system.tool_manager.get_last_sources.return_value = []
 
         # Act
@@ -131,7 +141,9 @@ class TestRAGSystemIntegration:
         """Test that conversation history persists across queries"""
         # Arrange
         session_id = "test_session_123"
-        rag_system.session_manager.get_conversation_history.return_value = "User: Hello\nAssistant: Hi there!"
+        rag_system.session_manager.get_conversation_history.return_value = (
+            "User: Hello\nAssistant: Hi there!"
+        )
         rag_system.ai_generator.generate_response.return_value = "How can I help you?"
         rag_system.tool_manager.get_last_sources.return_value = []
 
@@ -140,17 +152,19 @@ class TestRAGSystemIntegration:
 
         # Assert
         # Verify history was retrieved
-        rag_system.session_manager.get_conversation_history.assert_called_once_with(session_id)
+        rag_system.session_manager.get_conversation_history.assert_called_once_with(
+            session_id
+        )
 
         # Verify AI generator received history
         call_kwargs = rag_system.ai_generator.generate_response.call_args[1]
-        assert call_kwargs['conversation_history'] == "User: Hello\nAssistant: Hi there!"
+        assert (
+            call_kwargs["conversation_history"] == "User: Hello\nAssistant: Hi there!"
+        )
 
         # Verify exchange was added
         rag_system.session_manager.add_exchange.assert_called_once_with(
-            session_id,
-            "Can you help me?",
-            "How can I help you?"
+            session_id, "Can you help me?", "How can I help you?"
         )
 
     def test_tool_definitions_passed_to_ai(self, rag_system):
@@ -168,9 +182,11 @@ class TestRAGSystemIntegration:
 
         # Assert
         call_kwargs = rag_system.ai_generator.generate_response.call_args[1]
-        assert 'tools' in call_kwargs
-        assert call_kwargs['tools'] == [{"name": "search_course_content", "description": "Search"}]
-        assert 'tool_manager' in call_kwargs
+        assert "tools" in call_kwargs
+        assert call_kwargs["tools"] == [
+            {"name": "search_course_content", "description": "Search"}
+        ]
+        assert "tool_manager" in call_kwargs
 
     def test_query_without_session_id(self, rag_system):
         """Test query without providing session ID"""
@@ -194,10 +210,12 @@ class TestRAGSystemCourseManagement:
     @pytest.fixture
     def rag_system_with_real_vector_store(self, mock_config):
         """Create RAGSystem with mocked VectorStore but real interface"""
-        with patch('rag_system.VectorStore') as mock_vector_store_class, \
-             patch('rag_system.AIGenerator'), \
-             patch('rag_system.DocumentProcessor'), \
-             patch('rag_system.SessionManager'):
+        with (
+            patch("rag_system.VectorStore"),
+            patch("rag_system.AIGenerator"),
+            patch("rag_system.DocumentProcessor"),
+            patch("rag_system.SessionManager"),
+        ):
 
             rag = RAGSystem(mock_config)
             rag.vector_store = MagicMock()
@@ -210,7 +228,7 @@ class TestRAGSystemCourseManagement:
         rag_system_with_real_vector_store.vector_store.get_existing_course_titles.return_value = [
             "Introduction to MCP",
             "Python Basics",
-            "Web Development"
+            "Web Development",
         ]
 
         # Act

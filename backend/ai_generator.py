@@ -1,12 +1,13 @@
-import anthropic
 import logging
-from typing import List, Optional
+
+import anthropic
 
 logger = logging.getLogger(__name__)
 
+
 class AIGenerator:
     """Handles interactions with Anthropic's Claude API for generating responses"""
-    
+
     # Static system prompt to avoid rebuilding on each call
     SYSTEM_PROMPT = """ You are an AI assistant specialized in course materials and educational content with access to tools for searching course content and retrieving course outlines.
 
@@ -52,23 +53,22 @@ All responses must be:
 4. **Example-supported** - Include relevant examples when they aid understanding
 Provide only the direct answer to what was asked.
 """
-    
+
     def __init__(self, api_key: str, model: str, max_tool_rounds: int = 2):
         self.client = anthropic.Anthropic(api_key=api_key)
         self.model = model
         self.max_tool_rounds = max_tool_rounds
 
         # Pre-build base API parameters
-        self.base_params = {
-            "model": self.model,
-            "temperature": 0,
-            "max_tokens": 800
-        }
-    
-    def generate_response(self, query: str,
-                         conversation_history: Optional[str] = None,
-                         tools: Optional[List] = None,
-                         tool_manager=None) -> str:
+        self.base_params = {"model": self.model, "temperature": 0, "max_tokens": 800}
+
+    def generate_response(
+        self,
+        query: str,
+        conversation_history: str | None = None,
+        tools: list | None = None,
+        tool_manager=None,
+    ) -> str:
         """
         Generate AI response with iterative tool usage and conversation context.
 
@@ -96,10 +96,7 @@ Provide only the direct answer to what was asked.
         messages = [{"role": "user", "content": query}]
 
         # 3. Prepare base API parameters
-        base_api_params = {
-            **self.base_params,
-            "system": system_content
-        }
+        base_api_params = {**self.base_params, "system": system_content}
 
         # 4. Add tools if available
         if tools:
@@ -142,20 +139,26 @@ Provide only the direct answer to what was asked.
                 if content_block.type == "tool_use":
                     logger.debug(f"Executing tool: {content_block.name}")
                     tool_result = tool_manager.execute_tool(
-                        content_block.name,
-                        **content_block.input
+                        content_block.name, **content_block.input
                     )
-                    logger.debug(f"Tool result length: {len(tool_result) if tool_result else 0} characters")
+                    logger.debug(
+                        f"Tool result length: {len(tool_result) if tool_result else 0} characters"
+                    )
 
-                    tool_results.append({
-                        "type": "tool_result",
-                        "tool_use_id": content_block.id,
-                        "content": tool_result
-                    })
+                    tool_results.append(
+                        {
+                            "type": "tool_result",
+                            "tool_use_id": content_block.id,
+                            "content": tool_result,
+                        }
+                    )
 
                     # Check if tool returned "no results" (should terminate)
                     # Errors should be passed to Claude for explanation (don't terminate)
-                    is_no_results = tool_result and ("no " in tool_result.lower()[:10] or "not found" in tool_result.lower())
+                    is_no_results = tool_result and (
+                        "no " in tool_result.lower()[:10]
+                        or "not found" in tool_result.lower()
+                    )
                     if not is_no_results:
                         all_tools_failed = False
 
@@ -165,27 +168,25 @@ Provide only the direct answer to what was asked.
                 break
 
             # 5f. Append messages for next iteration
-            messages.append({
-                "role": "assistant",
-                "content": current_response.content
-            })
+            messages.append({"role": "assistant", "content": current_response.content})
 
             if tool_results:
-                messages.append({
-                    "role": "user",
-                    "content": tool_results
-                })
+                messages.append({"role": "user", "content": tool_results})
 
-            logger.debug(f"Round {round_num + 1} complete. Total messages: {len(messages)}")
+            logger.debug(
+                f"Round {round_num + 1} complete. Total messages: {len(messages)}"
+            )
         else:
             # 6. Handle max rounds exceeded (only if loop completed without break)
             if current_response and current_response.stop_reason == "tool_use":
-                logger.warning(f"Max tool rounds ({self.max_tool_rounds}) reached. Making final call without tools.")
+                logger.warning(
+                    f"Max tool rounds ({self.max_tool_rounds}) reached. Making final call without tools."
+                )
                 # Make final call WITHOUT tools to force text response
                 final_params = {
                     **self.base_params,
                     "messages": messages,
-                    "system": system_content
+                    "system": system_content,
                 }
 
                 try:
@@ -201,7 +202,7 @@ Provide only the direct answer to what was asked.
 
         # Find text content block
         for content_block in current_response.content:
-            if hasattr(content_block, 'text'):
+            if hasattr(content_block, "text"):
                 return content_block.text
 
         # Fallback if no text block found

@@ -1,21 +1,24 @@
 """Unit tests for CourseSearchTool and ToolManager"""
-import pytest
-from unittest.mock import MagicMock, patch
-import sys
+
 import os
+import sys
+from unittest.mock import MagicMock
+
+import pytest
 
 # Add backend directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 
-from search_tools import CourseSearchTool, ToolManager, Tool
-from vector_store import SearchResults
 from models import Source
+from search_tools import CourseSearchTool, Tool, ToolManager
 
 
 class TestCourseSearchTool:
     """Test CourseSearchTool execution and functionality"""
 
-    def test_execute_basic_query_success(self, mock_vector_store, sample_search_results):
+    def test_execute_basic_query_success(
+        self, mock_vector_store, sample_search_results
+    ):
         """Test basic search query without filters returns formatted results"""
         # Arrange
         tool = CourseSearchTool(mock_vector_store)
@@ -28,9 +31,7 @@ class TestCourseSearchTool:
         assert "MCP (Model Context Protocol)" in result or "MCP" in result
         assert "Introduction to MCP" in result
         mock_vector_store.search.assert_called_once_with(
-            query="What is MCP?",
-            course_name=None,
-            lesson_number=None
+            query="What is MCP?", course_name=None, lesson_number=None
         )
 
     def test_execute_with_course_filter(self, mock_vector_store, sample_search_results):
@@ -45,9 +46,7 @@ class TestCourseSearchTool:
         assert result is not None
         assert "Introduction to MCP" in result
         mock_vector_store.search.assert_called_once_with(
-            query="What is MCP?",
-            course_name="MCP",
-            lesson_number=None
+            query="What is MCP?", course_name="MCP", lesson_number=None
         )
 
     def test_execute_with_lesson_filter(self, mock_vector_store, sample_search_results):
@@ -62,9 +61,7 @@ class TestCourseSearchTool:
         assert result is not None
         assert "Lesson 1" in result or "MCP" in result
         mock_vector_store.search.assert_called_once_with(
-            query="MCP architecture",
-            course_name=None,
-            lesson_number=1
+            query="MCP architecture", course_name=None, lesson_number=1
         )
 
     def test_execute_course_not_found(self, mock_vector_store, error_search_results):
@@ -91,7 +88,9 @@ class TestCourseSearchTool:
         # Assert
         assert "No relevant content found" in result
 
-    def test_execute_formats_results_correctly(self, mock_vector_store, sample_search_results):
+    def test_execute_formats_results_correctly(
+        self, mock_vector_store, sample_search_results
+    ):
         """Test that results are formatted with course and lesson information"""
         # Arrange
         tool = CourseSearchTool(mock_vector_store)
@@ -114,7 +113,7 @@ class TestCourseSearchTool:
         tool = CourseSearchTool(mock_vector_store)
 
         # Act
-        result = tool.execute(query="What is MCP?")
+        _result = tool.execute(query="What is MCP?")
 
         # Assert
         assert len(tool.last_sources) == 2  # Two documents in sample results
@@ -134,7 +133,7 @@ class TestToolManager:
         mock_tool = MagicMock(spec=Tool)
         mock_tool.get_tool_definition.return_value = {
             "name": "test_tool",
-            "description": "A test tool"
+            "description": "A test tool",
         }
 
         # Act

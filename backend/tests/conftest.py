@@ -1,15 +1,16 @@
 """Shared test fixtures for the RAG chatbot test suite"""
-import pytest
-from unittest.mock import MagicMock, Mock
-from typing import List, Dict, Any
-import sys
+
 import os
+import sys
+from unittest.mock import MagicMock
+
+import pytest
 
 # Add backend directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from models import Course, Lesson, Source
 from vector_store import SearchResults
-from models import Source, Lesson, Course
 
 
 @pytest.fixture
@@ -33,32 +34,28 @@ def sample_search_results():
     return SearchResults(
         documents=[
             "MCP (Model Context Protocol) is a protocol for connecting AI models to data sources.",
-            "The MCP server allows tools to access external data and services."
+            "The MCP server allows tools to access external data and services.",
         ],
         metadata=[
             {
                 "course_title": "Introduction to MCP",
                 "lesson_number": 1,
-                "chunk_index": 0
+                "chunk_index": 0,
             },
             {
                 "course_title": "Introduction to MCP",
                 "lesson_number": 2,
-                "chunk_index": 1
-            }
+                "chunk_index": 1,
+            },
         ],
-        distances=[0.3, 0.5]
+        distances=[0.3, 0.5],
     )
 
 
 @pytest.fixture
 def empty_search_results():
     """SearchResults with no documents"""
-    return SearchResults(
-        documents=[],
-        metadata=[],
-        distances=[]
-    )
+    return SearchResults(documents=[], metadata=[], distances=[])
 
 
 @pytest.fixture
@@ -85,10 +82,22 @@ def sample_course():
         course_link="https://example.com/course/mcp",
         instructor="John Doe",
         lessons=[
-            Lesson(lesson_number=1, title="What is MCP?", lesson_link="https://example.com/lesson/1"),
-            Lesson(lesson_number=2, title="MCP Architecture", lesson_link="https://example.com/lesson/2"),
-            Lesson(lesson_number=3, title="Building MCP Servers", lesson_link="https://example.com/lesson/3")
-        ]
+            Lesson(
+                lesson_number=1,
+                title="What is MCP?",
+                lesson_link="https://example.com/lesson/1",
+            ),
+            Lesson(
+                lesson_number=2,
+                title="MCP Architecture",
+                lesson_link="https://example.com/lesson/2",
+            ),
+            Lesson(
+                lesson_number=3,
+                title="Building MCP Servers",
+                lesson_link="https://example.com/lesson/3",
+            ),
+        ],
     )
 
 
@@ -100,14 +109,14 @@ def sample_sources():
             text="Introduction to MCP - Lesson 1",
             url="https://example.com/lesson/1",
             course_title="Introduction to MCP",
-            lesson_number=1
+            lesson_number=1,
         ),
         Source(
             text="Introduction to MCP - Lesson 2",
             url="https://example.com/lesson/2",
             course_title="Introduction to MCP",
-            lesson_number=2
-        )
+            lesson_number=2,
+        ),
     ]
 
 
@@ -137,10 +146,7 @@ def mock_anthropic_tool_use_response():
     mock_tool_block.type = "tool_use"
     mock_tool_block.id = "toolu_01234567890"
     mock_tool_block.name = "search_course_content"
-    mock_tool_block.input = {
-        "query": "What is MCP?",
-        "course_name": "MCP"
-    }
+    mock_tool_block.input = {"query": "What is MCP?", "course_name": "MCP"}
 
     mock_response.content = [mock_tool_block]
     return mock_response
@@ -174,18 +180,20 @@ def mock_chroma_collection():
     """Mock ChromaDB collection"""
     mock_collection = MagicMock()
     mock_collection.query.return_value = {
-        'documents': [['Sample document content']],
-        'metadatas': [[{'course_title': 'Test Course', 'lesson_number': 1}]],
-        'distances': [[0.3]]
+        "documents": [["Sample document content"]],
+        "metadatas": [[{"course_title": "Test Course", "lesson_number": 1}]],
+        "distances": [[0.3]],
     }
     mock_collection.get.return_value = {
-        'ids': ['test_course_1'],
-        'metadatas': [{
-            'title': 'Test Course',
-            'instructor': 'Test Instructor',
-            'course_link': 'https://example.com/course',
-            'lessons_json': '[{"lesson_number": 1, "lesson_title": "Intro", "lesson_link": "https://example.com/lesson/1"}]'
-        }]
+        "ids": ["test_course_1"],
+        "metadatas": [
+            {
+                "title": "Test Course",
+                "instructor": "Test Instructor",
+                "course_link": "https://example.com/course",
+                "lessons_json": '[{"lesson_number": 1, "lesson_title": "Intro", "lesson_link": "https://example.com/lesson/1"}]',
+            }
+        ],
     }
     return mock_collection
 
@@ -194,7 +202,9 @@ def mock_chroma_collection():
 def mock_tool_manager(sample_sources):
     """Mock ToolManager"""
     mock_manager = MagicMock()
-    mock_manager.execute_tool.return_value = "[Introduction to MCP - Lesson 1]\nMCP is a protocol for AI models."
+    mock_manager.execute_tool.return_value = (
+        "[Introduction to MCP - Lesson 1]\nMCP is a protocol for AI models."
+    )
     mock_manager.get_last_sources.return_value = sample_sources
     mock_manager.get_tool_definitions.return_value = [
         {
@@ -205,10 +215,10 @@ def mock_tool_manager(sample_sources):
                 "properties": {
                     "query": {"type": "string"},
                     "course_name": {"type": "string"},
-                    "lesson_number": {"type": "integer"}
+                    "lesson_number": {"type": "integer"},
                 },
-                "required": ["query"]
-            }
+                "required": ["query"],
+            },
         }
     ]
     return mock_manager
@@ -227,7 +237,7 @@ def mock_anthropic_second_tool_use_response():
     mock_tool_block.input = {
         "query": "MCP Architecture details",
         "course_name": "MCP",
-        "lesson_number": 2
+        "lesson_number": 2,
     }
     mock_response.content = [mock_tool_block]
     return mock_response
@@ -237,7 +247,7 @@ def mock_anthropic_second_tool_use_response():
 def mock_anthropic_multi_round_sequence(
     mock_anthropic_tool_use_response,
     mock_anthropic_second_tool_use_response,
-    mock_anthropic_final_response
+    mock_anthropic_final_response,
 ):
     """Sequence of responses for 2-round tool calling"""
     # Response 1: First tool use (get course outline)

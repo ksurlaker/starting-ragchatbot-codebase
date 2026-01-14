@@ -30,6 +30,24 @@ cd backend && uv run uvicorn app:app --reload --port 8000
 
 The app runs at `http://localhost:8000` (frontend) and `http://localhost:8000/docs` (API docs).
 
+### Code Quality
+```bash
+# Install dev dependencies (includes black and ruff)
+uv sync --extra dev
+
+# Run all quality checks (formatting + linting)
+./quality.sh check
+
+# Auto-fix formatting and lint issues
+./quality.sh fix
+
+# Run only formatter (black)
+./quality.sh format
+
+# Run only linter (ruff)
+./quality.sh lint
+```
+
 ## Architecture
 
 ### Request Flow
