@@ -33,8 +33,11 @@ class SearchResults:
 
 class VectorStore:
     """Vector storage using ChromaDB for course content and metadata"""
-    
+
     def __init__(self, chroma_path: str, embedding_model: str, max_results: int = 5):
+        if max_results <= 0:
+            raise ValueError(f"max_results must be positive, got {max_results}")
+
         self.max_results = max_results
         # Initialize ChromaDB client
         self.client = chromadb.PersistentClient(
